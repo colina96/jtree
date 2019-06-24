@@ -57,26 +57,30 @@
 .test { position:relative; border-radius: var(--button_radius); border: 2px solid grey; margin:10px; float:right;}
 </style>
 <body>
-<div class='flexbtn'>
-<div>
-	<div id='partA' class='part' onclick='next_q("a");'>
-		<div class='flex'><div id='partA_q'></div><div id='partA_percent'>50%</div></div>
-		<div id='partA_tip'></div>
-	</div>
-	<div id='partA' class='part' onclick='next_q("b");'>
-		<div class='flex'><div id='partB_q'></div><div id='partB_percent'>50%</div></div>
-		<div id='partB_tip'></div>
+<div id='questions' class='stuff'>
+	<div class='flexbtn'>
+		<div>
+			<div id='partA' class='part' onclick='next_q("a");'>
+				<div class='flex'><div id='partA_q'></div><div id='partA_percent'>50%</div></div>
+				<div id='partA_tip'></div>
+			</div>
+			<div id='partA' class='part' onclick='next_q("a");'>
+				<div class='flex'><div id='partB_q'></div><div id='partB_percent'>50%</div></div>
+				<div id='partB_tip'></div>
+			</div>
+		</div>
+	
+		<div id='slider_outer' class='test'><div id='slider'>  </div></div>
 	</div>
 </div>
-	<div id='slider_outer' class='test'><div id='slider'>A</div></div>
-</div>
-<div id='result' class='part hidden'></div>
+<div id='result' class='stuff hidden' onclick='restart()'><div id='result_inner' class='flexbtn'></div></div>
 </body>
 <script>
 var q = 0;
 var p = 0; // percent
 var slider_top = 0;
 var slider_bottom = 0;
+
 function center_slider(pos)
 {
 	var slider_outer = document.getElementById('slider_outer');
@@ -109,8 +113,8 @@ function show_q(choice)
 function next_q(choice)
 {
 	var score = 1;
-	var alt = 'a';
-	if (choice == 'a') alt = 'b';
+	var alt = 'b';
+	
 	console.log(q,options.length,'choice ',choice,options[q][choice]);
 	choices += options[q][choice];
 	for (var i = 0; i < results.length; i++) {
@@ -124,11 +128,11 @@ function next_q(choice)
 		}
 		else {
 			if (key.indexOf(options[q][alt]) >= 0) {
-				results[i]['score'] += (100 - p);
+				results[i]['score'] += 100 - p;
 			}
 			// results[key]['score'] += 1;
 		}
-			// console.log(key,options[q][choice],choice);
+		console.log(key,results[i]['score']);
 	}
 	if (q < options.length - 1) {
 		q++;
@@ -141,13 +145,13 @@ function next_q(choice)
 				return(b.score - a.score);
 		}); 
 		// if (results[choices]) {
-			document.getElementById('result').innerHTML = "";
+			document.getElementById('result_inner').innerHTML = "";
 			//console.log(results[choices]['text']);
-			goto_page('result');
+			goto_page('result','stuff');
 			for (var i = 0; i <  results.length; i++) {
 				// console.log(key,results[key]);
 				console.log("!!!",results[i]['key'],results[i]['score']);
-				if (i < 4) document.getElementById('result').innerHTML += results[i]['text'] + "<br>" + parseInt(results[i]['score'] / 4 + "<br>");
+				if (i < 4) document.getElementById('result_inner').innerHTML += parseInt(results[i]['score'] / 4) + "% " + results[i]['text'] + "<br>" +  "<br>";
 				
 			}
 		// }
@@ -183,12 +187,24 @@ function move(e) {
 
 function setup_slider()
 {
+	goto_page('questions','stuff');
 	var slider_outer = document.getElementById('slider_outer');
 	slider = document.getElementById('slider');
 	window.addEventListener('mouseup', mouseUp, false);
 	slider.addEventListener('mousedown', mouseDown, false);
 	
 } 
+
+function restart()
+{
+	q = 0;
+	for (var i = 0; i <  results.length; i++) {
+		// console.log(key,results[key]);
+		results[i]['score'] = 0;
+	}
+	goto_page('questions','stuff');
+	show_q();
+}
 window.onload = function() {
 	choices = '';
 	// hide('results');
