@@ -101,7 +101,8 @@ function center_slider(pos)
 	slider_top = s_o.top; 
 	slider_bottom = s_o.bottom; 
 	slider_height = s.height;
-	
+	document.getElementById('partA_q').style.fontSize =   "10vw";
+	document.getElementById('partB_q').style.fontSize =   "10vw";
 	console.log('center_slider',s_o,s);
 	if (pos) {
 		let p = 100 * pos / (s_o.bottom - s_o.top);
@@ -191,8 +192,10 @@ function move(y) {
  		if (p < 0) p = 0;
  		if (p > 100) p = 100;
 		document.getElementById('partB_percent').innerHTML = p + "%";
+		document.getElementById('partB_q').style.fontSize =  parseInt(50 + p / 2) / 10 + "vw";
 		p = 100 - p;
 		document.getElementById('partA_percent').innerHTML = p + "%";
+		document.getElementById('partA_q').style.fontSize =  parseInt(50 + p / 2) / 10 + "vw";
 		y = y - slider_top;
 		if (y > slider_bottom) y = slider_bottom;
 		// if 
