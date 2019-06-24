@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Something to think about</title>
+
+<script src="jtree.js"></script>
+<script src="js/tools.js"></script>
+<style>
+:root {
+    --grey: #4f4f4f;
+    --white: #ffffff;
+    --lightpurple: #93b3fd;
+    --red: #ed165d;
+    --orange: #e9ab17;
+	--green:#18e0af;
+    --blue: #2e6af2;
+    --purple: #882cdf;
+    --darkblue: #1543ab;
+    --darkpurple: #4f198d;
+
+    --modal_radius: 15px;
+    --button_radius: 10px;
+ }
+.part {
+	
+	.background-color: var(--grey);;
+	
+    font-size: 0.7em;
+	.color:white;
+	margin: 10px auto;
+	padding: 10px;
+	border-radius: var(--button_radius);
+	border: 2px solid grey;
+	width:200px;
+	height:100px;
+}
+.hidden {
+	display:none;
+}
+#partA_q,#partB_q 
+{
+	margin: 10px auto;
+	font-size:larger;
+}
+#slider { height: 10%; width: 30px; background-color: var(--blue);  position:relative; top: 50%; }
+#slider_top, #slider_bot { height:50% -10px; padding:10px;}
+#slider_top { background-color: var(--red); }
+#slider_bot { background-color: var(--blue); }
+.flexbtn { display:flex;border-radius: var(--button_radius); border: 2px solid red;margin: 10px auto;
+	padding: 10px;}
+.flex { display:flex;}
+.test { position:relative; border-radius: var(--button_radius); border: 2px solid grey; margin:10px; float:right;}
+</style>
+<body>
+<div class='flexbtn'>
+<div>
+	<div id='partA' class='part' onclick='next_q("a");'>
+		<div class='flex'><div id='partA_q'></div><div id='partA_percent'>50%</div></div>
+		<div id='partA_tip'></div>
+	</div>
+	<div id='partA' class='part' onclick='next_q("b");'>
+		<div class='flex'><div id='partB_q'></div><div id='partB_percent'>50%</div></div>
+		<div id='partB_tip'></div>
+	</div>
+</div>
+	<div id='slider_outer' class='test'><div id='slider'>A</div></div>
+</div>
+<div id='result' class='part hidden'></div>
+</body>
+<script>
+var q = 0;
+var p = 0; // percent
+var slider_top = 0;
+var slider_bottom = 0;
+function center_slider(pos)
+{
+	var slider_outer = document.getElementById('slider_outer');
+	
+	var slider = document.getElementById('slider');
+	var s_o = slider_outer.getBoundingClientRect();
+	slider_top = s_o.top; 
+	slider_bottom = s_o.bottom; 
+	var s = slider.getBoundingClientRect();
+	console.log('center_slider',s_o,s);
+	if (pos) {
+		let p = 100 * pos / (s_o.bottom - s_o.top);
+		document.getElementById('partA_percent').innerHTML = p + "%";
+		slider.style.top = pos + "px";
+	}
+	else {
+		let p = 
+		slider.style.top = (s_o.bottom - s_o.top- s.height) / 2 - 10 + "px";
+	}
+	
+}
+function show_q(choice)
+{
+	document.getElementById('partA_q').innerHTML = options[q].aText;
+	document.getElementById('partA_tip').innerHTML = options[q].aTip;
+	document.getElementById('partB_q').innerHTML = options[q].bText;
+	document.getElementById('partB_tip').innerHTML = options[q].bTip;
+	center_slider();
+}
+function next_q(choice)
+{
+	var score = 1;
+	var alt = 'a';
+	if (choice == 'a') alt = 'b';
+	console.log(q,options.length,'choice ',choice,options[q][choice]);
+	choices += options[q][choice];
+	for (var i = 0; i < results.length; i++) {
+		// console.log(key,results[key]);
+		let key = results[i]['key'];
+		if (key.indexOf(options[q][choice]) >= 0) {
+			results[i]['score'] += p;
+		
+			// console.log("!!!",key,options[q][choice],choice,results[key]['score']);
+			
+		}
+		else {
+			if (key.indexOf(options[q][alt]) >= 0) {
+				results[i]['score'] += (100 - p);
+			}
+			// results[key]['score'] += 1;
+		}
+			// console.log(key,options[q][choice],choice);
+	}
+	if (q < options.length - 1) {
+		q++;
+		show_q();
+	}
+	else {
+		console.log('finished');
+		
+		results.sort(function(a, b) {
+				return(b.score - a.score);
+		}); 
+		// if (results[choices]) {
+			document.getElementById('result').innerHTML = "";
+			//console.log(results[choices]['text']);
+			goto_page('result');
+			for (var i = 0; i <  results.length; i++) {
+				// console.log(key,results[key]);
+				console.log("!!!",results[i]['key'],results[i]['score']);
+				if (i < 4) document.getElementById('result').innerHTML += results[i]['text'] + "<br>" + parseInt(results[i]['score'] / 4 + "<br>");
+				
+			}
+		// }
+		
+	}
+}
+
+var slider_active = false;
+
+function mouseUp() {
+	console.log('mouseup');
+    window.removeEventListener('mousemove', move, true);
+}
+
+function mouseDown(e) {
+    window.addEventListener('mousemove', move, true);
+    
+}
+var slider; 
+function move(e) {
+	// console.log(e.clientY,slider_top,slider_bottom);
+ 	if (e.clientY - slider_top - 10 > 0 && e.clientY < slider_bottom - 20) {
+ 		p = parseInt(100 * (e.clientY - slider_top) / (slider_bottom - slider_top - 35) - 4);
+ 		if (p < 0) p = 0;
+ 		if (p > 100) p = 100;
+		document.getElementById('partB_percent').innerHTML = p + "%";
+		p = 100 - p;
+		document.getElementById('partA_percent').innerHTML = p + "%";
+    	slider.style.top = e.clientY - slider_top - 10 + 'px';
+ 	}
+
+}
+
+function setup_slider()
+{
+	var slider_outer = document.getElementById('slider_outer');
+	slider = document.getElementById('slider');
+	window.addEventListener('mouseup', mouseUp, false);
+	slider.addEventListener('mousedown', mouseDown, false);
+	
+} 
+window.onload = function() {
+	choices = '';
+	// hide('results');
+	q = 0;
+	show_q();
+	setup_slider();
+}
+</script>
+</html>
