@@ -26,6 +26,9 @@
     --modal_radius: 15px;
     --button_radius: 10px;
  }
+ body {
+ max-width:500px; 
+ }
 .part {
 	
 	.background-color: var(--grey);;
@@ -36,8 +39,8 @@
 	padding: 10px;
 	border-radius: var(--button_radius);
 	border: 2px solid grey;
-	width:200px;
-	height:100px;
+	.width:200px;
+	min-height:100px;
 }
 .hidden {
 	display:none;
@@ -45,41 +48,48 @@
 #partA_q,#partB_q 
 {
 	margin: 10px auto;
-	font-size:larger;
+	font-size:10vw;
 }
-#slider { height: 10%; width: 30px; background-color: var(--blue);  position:relative; top: 50%; }
+#slider { padding: 0 10px; background-color: var(--blue);  position:relative; top: 50%; }
 #slider_top, #slider_bot { height:50% -10px; padding:10px;}
 #slider_top { background-color: var(--red); }
 #slider_bot { background-color: var(--blue); }
-.flexbtn { display:flex;border-radius: var(--button_radius); border: 2px solid red;margin: 10px auto;
+.btn { border-radius: var(--button_radius); border: 2px solid red;margin: 10px auto;
 	padding: 10px;}
 .flex { display:flex;}
-.test { position:relative; border-radius: var(--button_radius); border: 2px solid grey; margin:10px; float:right;}
+.inline { display:inline-block;}
+.test { position:relative; border-radius: var(--button_radius); border: 2px solid grey; margin:10px 0px 10px 10px;; float:right;}
+.fit { width: fit-content;}
 </style>
 <body>
 <div id='questions' class='stuff'>
-	<div class='flexbtn'>
-		<div>
-			<div id='partA' class='part' onclick='next_q("a");'>
-				<div class='flex'><div id='partA_q'></div><div id='partA_percent'>50%</div></div>
-				<div id='partA_tip'></div>
+	<div class='fit'>
+		<div class='flex'>
+			<div>
+				<div id='partA' class='part' onclick='next_q("a");'>
+					<div class='flex'><div id='partA_q'></div><div id='partA_percent'>50%</div></div>
+					<div id='partA_tip'></div>
+				</div>
+				<div id='partB' class='part' onclick='next_q("a");'>
+					<div class='flex'><div id='partB_q'></div><div id='partB_percent'>50%</div></div>
+					<div id='partB_tip'></div>
+				</div>
 			</div>
-			<div id='partA' class='part' onclick='next_q("a");'>
-				<div class='flex'><div id='partB_q'></div><div id='partB_percent'>50%</div></div>
-				<div id='partB_tip'></div>
-			</div>
-		</div>
 	
-		<div id='slider_outer' class='test'><div id='slider'>  </div></div>
+			<div id='slider_outer' class='test'><div id='slider'> <span style='font-size:5vw;'>&#8691;</span></div></div>
+		</div>
+		<div class='btn'  onclick='next_q("a");'>Next</div>
 	</div>
+	
 </div>
-<div id='result' class='stuff hidden' onclick='restart()'><div id='result_inner' class='flexbtn'></div></div>
+<div id='result' class='stuff hidden' onclick='restart()'><div id='result_inner' class='btn'></div></div>
 </body>
 <script>
 var q = 0;
 var p = 0; // percent
 var slider_top = 0;
 var slider_bottom = 0;
+var slider_height = 20;
 
 function center_slider(pos)
 {
@@ -87,9 +97,11 @@ function center_slider(pos)
 	
 	var slider = document.getElementById('slider');
 	var s_o = slider_outer.getBoundingClientRect();
+	var s = slider.getBoundingClientRect();
 	slider_top = s_o.top; 
 	slider_bottom = s_o.bottom; 
-	var s = slider.getBoundingClientRect();
+	slider_height = s.height;
+	
 	console.log('center_slider',s_o,s);
 	if (pos) {
 		let p = 100 * pos / (s_o.bottom - s_o.top);
@@ -163,26 +175,48 @@ var slider_active = false;
 
 function mouseUp() {
 	console.log('mouseup');
-    window.removeEventListener('mousemove', move, true);
+    window.removeEventListener('mousemove', mousemove, true);
 }
 
 function mouseDown(e) {
-    window.addEventListener('mousemove', move, true);
+    window.addEventListener('mousemove', mousemove, true);
+    window.addEventListener('touchmove', mousemove, true);
     
 }
 var slider; 
-function move(e) {
+function move(y) {
 	// console.log(e.clientY,slider_top,slider_bottom);
- 	if (e.clientY - slider_top - 10 > 0 && e.clientY < slider_bottom - 20) {
- 		p = parseInt(100 * (e.clientY - slider_top) / (slider_bottom - slider_top - 35) - 4);
+ 	if (y - slider_top - 10 > 0 && y < slider_bottom - slider_height -10) {
+ 		p = parseInt(100 * (y - slider_top) / (slider_bottom - slider_top - slider_height * 2) - 4);
  		if (p < 0) p = 0;
  		if (p > 100) p = 100;
 		document.getElementById('partB_percent').innerHTML = p + "%";
 		p = 100 - p;
 		document.getElementById('partA_percent').innerHTML = p + "%";
-    	slider.style.top = e.clientY - slider_top - 10 + 'px';
+		y = y - slider_top;
+		if (y > slider_bottom) y = slider_bottom;
+		// if 
+    	slider.style.top = y + 'px';
  	}
 
+}
+
+function mousemove(e)
+{
+	move(e.clientY);
+}
+function touchmove(e)
+{
+	var touchobj = e.changedTouches[0] // reference first touch point (ie: first finger)
+    let y = parseInt(touchobj.clientY) ;
+	move(y);
+	e.preventDefault();
+}
+function touchstart(e)
+{
+	
+	window.addEventListener('touchmove', touchmove, true);
+	e.preventDefault();
 }
 
 function setup_slider()
@@ -192,7 +226,7 @@ function setup_slider()
 	slider = document.getElementById('slider');
 	window.addEventListener('mouseup', mouseUp, false);
 	slider.addEventListener('mousedown', mouseDown, false);
-	
+	slider.addEventListener('touchstart', touchstart, false);
 } 
 
 function restart()
@@ -207,7 +241,7 @@ function restart()
 }
 window.onload = function() {
 	choices = '';
-	// hide('results');
+	
 	q = 0;
 	show_q();
 	setup_slider();
